@@ -143,22 +143,53 @@ yargs
       console.log('comando deploy eseguito');
       console.log(argv);
     })
-  .command('run <funcName> [params..]', 'run a javascript function to etherless', () => { }, async (argv) => {
-    try {
-      // await ethers.loadWalletFromFS();
-      // const contractRun = ethers.createContract("").connect(ethers.userWallet);
-      const stringParameters = argv.params.join(',');
-      console.log(stringParameters);/*
-        let sourceCode = "stringa col codice da eseguire";
-        contractRun.sendRunEvent(sourceCode, stringParameters);
-        contractRun.on("runResult", () => {
-            console.log("Ricevuto risultato: ");
-            // console.log(runResult.risultato);
-        } );
-        contractRun.removeAllListeners("runResult");*/
-    } catch (e) {
-      console.log(e);
-    }
+    .command('run <funcName> [params..]', 'run a function', () => {}, async (argv) => {
+      try {
+          await ethers.loadWalletFromFS();
+          //const contractRun = ethers.createContract("0x6C9a34F5343B15314869b839b1b2e2dC1F8cE016").connect(ethers.userWallet);//vecchio contratto funzionante
+          // contractRun.connect(ethers.userWallet);
+          // ethers.createContract("0x38bB51CaAD409943d4dF3A177674B03262C10F98").connect(ethers.userWallet); //per testare
+  
+          let walletUser = ethers.userWallet; 
+          /* ----- yargs ------ */
+          let stringParameters = "";
+          console.log(stringParameters);
+          let paramArray = argv.params;
+          let paramJSON ="{";
+          for(var i = 0; i<(paramArray.length); i++){
+              let j = i + 1;
+              paramJSON = paramJSON.concat("'param").concat(j.toString()).concat("': ").concat(paramArray[i]).concat(",");
+          }
+          paramJSON = paramJSON.substring(0, paramJSON.length-1);
+          paramJSON = paramJSON.concat("}");
+          console.log(paramJSON);
+          console.log(JSON.stringify(paramJSON));
+          //let myJSON = JSON.parse(paramJSON);
+          //console.log(myJSON);
+          for(var i = 0; i<(paramArray.length -1); i++){
+              stringParameters = stringParameters.concat(paramArray[i] + ",");
+          }
+          //perchè dopo l'ultimo parametro non voglio la virgola, parametri in formato (param1,param2,param3) senza parentesi
+          stringParameters = stringParameters.concat(paramArray[i]);
+          /* ------------------- */
+  
+          await ethers.loadSmartContract("0x38bB51CaAD409943d4dF3A177674B03262C10F98")
+          .then( (contractRun) => {
+              contractRun = contractRun.connect(ethers.userWallet);
+  
+              contractRun.sendRunEvent(argv.funcName , stringParameters).then(console.log).catch(console.log);
+  
+              //Capire come usare il wallet dell'user nel ritorno
+              contractRun.on("runResult", (walletUser, fResult) => {
+                  console.log("Ricevuto risultato: ");
+                  console.log(fResult);
+                  contractRun.removeAllListeners("runResult");
+              } );
+          }).catch(console.log);
+          
+      } catch(e) {
+          console.log(e);
+      }
   })
   .command('deployContract <contractPath>', 'deploya uno smart contract sulla blockchain', () => { }, async (argv) => {
     try {
@@ -176,74 +207,5 @@ yargs
       console.log(e);
     }
   })
-  /*
-.command('run HelloWorld', 'run HelloWorld function', () => {}, async (argv) => {
-    try {
-        await ethers.loadWalletFromFS();
-        const contractAlfred = ethers.createContract("0x7526aaCdf025991e68c6c1196fF581066c491b06")
-          .connect(ethers.userWallet);
-
-        // contractAlfred.getGreeting().then(console.log);
-        contractAlfred.setGreeting("Alfred saluta ").then(console.log);
-
-        contractAlfred.once("serverSendGreeting", () => {
-            console.log("Rosalina ha salutato");
-            contractAlfred.removeAllListeners("serverSendGreeting");
-        });
-
-    } catch(e) {
-        console.log(e);
-    }
-}) */
-  .command('runPoc <funcName> [params..]', 'run a function', () => { }, async (argv) => {
-    try {
-      await ethers.loadWalletFromFS();
-
-      ethers.loadWalletFromFS()
-        .then((success) => {
-          if (success) {
-            const contractRun = ethers.loadSmartContract('0x6C9a34F5343B15314869b839b1b2e2dC1F8cE016')
-              .then((contractRun) => {
-                const contractRunSigned = contractRun.connect(ethers.userWallet);
-
-                /* ----- yargs ------ */
-                const stringParameters = argv.params.join(',');
-                console.log(typeof stringParameters);
-                /* ------------------- */
-
-                contractRunSigned.sendRunEvent(argv.funcName, stringParameters).then(console.log);
-
-                contractRunSigned.on('runResult', (fResult) => {
-                  console.log('Ricevuto risultato: ');
-                  console.log(fResult);
-                });
-              })
-              .catch(console.log);
-          }
-        })
-        .catch(console.log);
-
-      // contractRun.removeAllListeners("runResult");
-    } catch (e) {
-      console.log(e);
-    }
-  })
   .help(false)
   .parse();
-
-// ethers.showPrivateKey();
-
-// ethers.loadWalletFromFS()
-// .then((success) => {
-//     if (success) {
-//         const myContract = ethers.loadSmartContract('0x618B96E44f2Cb4c060341FB8A81F4DA36Eb930f6')
-//         .then((myContract) => {
-//             let signedContract = myContract.connect(ethers.userWallet);
-//             console.log(ethers.userWallet.privateKey);
-//             signedContract.getGreeting().then(console.log);
-//             signedContract.setGreeting("Mestolo").then(console.log);
-//         })
-//     .catch(console.log);
-//     }
-// })
-// .catch(console.log);
