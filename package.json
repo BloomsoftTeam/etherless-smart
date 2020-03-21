@@ -1,0 +1,50 @@
+{
+  "name": "ether",
+  "version": "1.0.0",
+  "description": "ether PoC",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "gianluigipelle",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node-fetch": "^2.5.4",
+    "boxen": "^4.2.0",
+    "chalk": "^3.0.0",
+    "dotenv": "^8.2.0",
+    "ethers": "^4.0.44",
+    "libsodium": "^0.7.6",
+    "libsodium-wrappers": "^0.7.6",
+    "node-fetch": "^2.6.0",
+    "node-ts": "^5.0.3",
+    "scrypt-js": "^3.0.0",
+    "serverless": "^1.64.0",
+    "solc": "^0.5.16",
+    "web3": "^1.2.6",
+    "yargs": "^15.1.0"
+  },
+  "devDependencies": {
+    "@openzeppelin/cli": "^2.7.2",
+    "@openzeppelin/contracts": "^2.5.0",
+    "@typescript-eslint/eslint-plugin": "^2.22.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-typescript": "^7.0.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.18.3",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "husky": "^4.2.3",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/1dotd4/etherless-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/1dotd4/etherless-cli/issues"
+  },
+  "homepage": "https://github.com/1dotd4/etherless-cli#readme"
+}
