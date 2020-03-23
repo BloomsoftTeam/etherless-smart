@@ -7,7 +7,7 @@ contract DeployContract is ContractsInterface {
     
     mapping (string => address payable) tokenOwnership;
 
-    event uploadToken(string token, address payable userAddress, string fName);
+    event uploadToken(string token, address payable userAddress, string fName, bool updateFun);
     event requestUpload(address payable userAddress);
 
     function addTokenOwnership(string memory token, address payable developerAddress) public {
@@ -18,11 +18,10 @@ contract DeployContract is ContractsInterface {
         delete tokenOwnership[token];
     }
 
-    function deploy(string memory token, string memory fName) payable public {
+    function deploy(string memory token, string memory fName, bool updateFun) payable public {
         require(msg.sender.balance >= costoDeploy);
-        msg.sender.transfer(costoDeploy);
         addTokenOwnership(token, msg.sender);
-        emit uploadToken(token, msg.sender, fName); //ascoltato da EC2
+        emit uploadToken(token, msg.sender, fName, updateFun); //ascoltato da EC2
     }
     
     //EC2 chiama
@@ -31,14 +30,15 @@ contract DeployContract is ContractsInterface {
     }
     
     //EC2 chiama, calcolo del prezzo su server
-    function consumeToken(string memory token, string memory fName, address payable userAddress, uint fPrice) public {
+    function consumeToken(string memory token, string memory fName, address payable userAddress, uint fPrice) public payable {
         removeTokenOwnership(token);
         addFunOwnership(fName, userAddress);
         addFunHidden(fName, false);
         addFunPrice(fName, fPrice);
+        adminAddress.transfer(costoDeploy);
     }
     
-    function requestTokenRefund(string memory token) public {
+    function requestTokenRefund(string memory token) public payable {
         require(tokenOwnership[token] == msg.sender);
         msg.sender.transfer(costoDeploy);
         removeTokenOwnership(token);
