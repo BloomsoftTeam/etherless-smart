@@ -1,30 +1,45 @@
 pragma solidity 0.5.16;
 
-contract DeployContract is Ownable {
-    // costoDeploy = 20cent;
+import "contractsInterface.sol";
+//Ownable = openzeppelin
+contract DeployContract is Ownable, ContractsInterface {
+    const uint costoDeploy = 1759633996128805 wei; //sono 20 centesimi
+    
+    mapping (string memory => address payable) tokenOwnership;
 
-    func deploy(token: string memory) payable {
-        check msg.value == DEPLOY_FEE
-        tokenOwnership[msg.sender] = token;
-        emit event UploadToken(token, msg.sender) //ascoltato da EC2
+    event uploadToken(string memory token, address payable userAddress, string memory fName);
+    event requestUpload(address payble userAddress);
+
+    function addTokenOwnership(string memory token, address payable developerAddress) public {
+        tokenOwnership[token] = developerAddress;
     }
-    
-    //EC2 chiama
-    func requestUpload(userAddress) {
-        emit event RequestUpload(userAddress);
-    }
-    
-    //EC2 chiama
-    func consumeToken(token) {
+
+    function removeTokenOwnership(string memory token) public {
         delete tokenOwnership[token];
-        mapping funcOwnership[funcName] = userAddress;
-        mapping available hidden false
-        mapping funcPrice = totalPrice
+    }
+
+    function deploy(string memory token, string memory fName) payable {
+        require(msg.sender.balance >= costoDeploy);
+        msg.sender.transfer(costoDeploy);
+        addTokenOwnership(token, msg.sender);
+        emit event uploadToken(token, msg.sender, fName); //ascoltato da EC2
     }
     
-    func requestTokenRefund(token) {
-        check mapping tokenOwnership (msg.sender possegga quel token)
-        msg.sender.transfer(DEPLOYFEE);
-        delete tokenOwnership[];
-        //eliminare da cli il token
+    //EC2 chiama
+    function sendRequestUpload(address payable userAddress) {
+        emit event requestUpload(userAddress);
+    }
+    
+    //EC2 chiama, calcolo del prezzo su server
+    function consumeToken(string memory token, string memory fName, address payable userAddress, uint fPrice) {
+        removeTokenOwnership(token);
+        addFunOwnership(fName, userAddress);
+        addFunHidden(fName, false);
+        addFunPrice(fName, fPrice);
+    }
+    
+    function requestTokenRefund(string memory token) {
+        require(tokenOwnership[token] == msg.sender);
+        msg.sender.transfer(costoDeploy);
+        removeTokenOwnership(token);
     }

@@ -2,12 +2,12 @@ pragma solidity 0.5.16;
 
 contract ContractsInterface {
 
-    mapping (string => address payable) public devFun;
+    mapping (string => address payable) public funOwnership;
     mapping (string => uint) public funPrices;
     mapping (string => bool) public funHidden;
 
-    function addDevFun(string memory fName, address payable fDeveloper) public {
-        devFun[fName] = fDeveloper;
+    function addFunOwnership(string memory fName, address payable developerAddress) public {
+        funOwnership[fName] = developerAddress;
     }
     
     function addFunPrice(string memory fName, uint fPrice) public {
@@ -20,5 +20,17 @@ contract ContractsInterface {
 
     function changeHidden(string memory fName) public {
         funHidden[fName] = !funHidden[fName];
+    }
+
+    function removeFunOwnership(string memory fName) public {
+        delete funOwnership[fName];
+    }
+
+    function removeFunPrices(string memory fName) public {
+        delete funPrices[fName];
+    }
+
+    function removeFunHidden(string memory fName) public {
+        delete funHidden[fName];
     }
 }
