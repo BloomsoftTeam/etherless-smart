@@ -1,9 +1,11 @@
 pragma solidity 0.5.16;
 
-import "contractsInterface.sol";
-//Ownable = openzeppelin
-contract DeployContract is ContractsInterface {
+import "etherlessStorage.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
+
+contract DeployContract is Ownable {
     uint constant deployFee = 1759633996128805 wei; //sono 20 centesimi
+    EtherlessStorage private etherlessStorage;
     
     mapping (string => address payable) tokenOwnership;
 
@@ -20,7 +22,7 @@ contract DeployContract is ContractsInterface {
 
     function deploy(string memory token, string memory fName) payable public {
         require(msg.sender.balance >= deployFee);
-        bool updateFun = (funOwnership[fName] == msg.sender);
+        bool updateFun = (etherlessStorage.funOwnership[fName] == msg.sender);
         addTokenOwnership(token, msg.sender);
         emit uploadToken(token, msg.sender, fName, updateFun); //ascoltato da EC2
     }
@@ -34,9 +36,7 @@ contract DeployContract is ContractsInterface {
     function consumeToken(string memory token, string memory fName, address payable devAddress, uint fPrice) public onlyOwner payable returns(bool) {
         if(tokenOwnership[token] != 0x0){
             removeTokenOwnership(token);
-            setFunOwnership(fName, usersAddress);
-            setFunAvailability(fName, true);
-            setFunPrice(fName, fPrice);
+            etherlessStorage.setFun(fName, etherlessStorage.Availability.available, devAddress, fPrice);
             owner().transfer(deployFee);
             return true;
         }

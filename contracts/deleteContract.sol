@@ -1,23 +1,21 @@
 pragma solidity 0.5.16;
 
-import "contractsInterface.sol";
+import "etherlessStorage.sol";
 
-contract DeleteContract is ContractsInterface {
+contract DeleteContract {
 
-    event deleteRequest(address developerAddress, string fName);
+    EtherlessStorage private etherlessStorage;
+
+    event deleteRequest(address devAddress, string funName);
     event deleteSuccess(bool removed);
 
-    function sendDeleteRequest(address developerAddress, string memory fName) public {
-        require(funOwnership[fName] == developerAddress);
-        emit deleteRequest(developerAddress, fName);
+    function sendDeleteRequest(address devAddress, string memory funName) public {
+        require(etherlessStorage.hasFunPermission(funName, devAddress));
+        emit deleteRequest(devAddress, funName);
     }
 
-    function sendDeleteSuccess(bool removed, string memory fName) public {
-        if(removed) {
-            removeFunOwnership(fName);
-            removeFunPrices(fName);
-            removeFunHidden(fName);
-        }
-        emit deleteSuccess(removed);
+    function sendDeleteSuccess(bool removed, string memory funName) public {
+        bool deleteResult = etherlessStorage.removeFunOwnership(funName, msg.sender);
+        emit deleteSuccess(deleteResult);
     }
 }
