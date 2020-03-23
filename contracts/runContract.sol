@@ -31,7 +31,7 @@ contract RunContract is ContractsInterface {
     }
 
     function sendRunEvent(string memory fName, string memory fParameters) public payable onlyUser { 
-        deposit();//il vez caccia li sordi sempre definendo il value con ethers
+        deposit(fName);//il vez caccia li sordi sempre definendo il value con ethers
         emit runRequest(msg.sender, fName, fParameters);
     }
 
