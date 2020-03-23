@@ -4,22 +4,24 @@ import "contractsInterface.sol";
 
 contract RunContract is ContractsInterface {
 
-    address payable private fUser;
+    address payable private userAddress;
     
     constructor() public {
-        fUser = msg.sender; // salvo il vez che vuole fare run
+        userAddress = msg.sender; // salvo il vez che vuole fare run
     }
     
     modifier onlyUser {
-        require(msg.sender == fUser);
+        require(msg.sender == userAddress);
         _;
     }
 
-    event runRequest(address payable fUser, string fName, string fParameters);
+    event runRequest(address payable userAddress, string fName, string fParameters);
    
-    event runResult(address payable fUser, string fResult);
+    event runResult(address payable userAddress, string fResult);
     
-    function deposit() payable public {
+    function deposit(string memory fName) payable public onlyUser{
+        require(funHidden[fName] == false);
+        require(msg.value >= funPrices[fName]);
         //qua è giusto non scrivere nulla perché si deve settare il value con ethers.js... il msg.value con cui si chiamerà questa funzione sarà anche la cifra depositata
     }
 
@@ -28,14 +30,15 @@ contract RunContract is ContractsInterface {
         msg.sender.transfer(money);
     }
 
-    function emitRunEvent(string memory fName, string memory fParameters) public payable onlyUser { 
+    function sendRunEvent(string memory fName, string memory fParameters) public payable onlyUser { 
         deposit();//il vez caccia li sordi sempre definendo il value con ethers
         emit runRequest(msg.sender, fName, fParameters);
     }
 
-    function sendRunResult(string memory fResult, uint moneySpent) public payable {
-        withdraw(moneySpent); //il dev si tiene il suo compenso
-        RunContract(fUser).withdraw(address(this).balance); //il vez prende il resto
-        emit runResult(fUser, fResult); // e vissero tutti felici e contenti
+    function sendRunResult(string memory fResult, uint devFee, uint platformPrice, address payable developerAddress) public payable {
+        RunContract(adminAddress).withdraw(platformPrice);
+        RunContract(developerAddress).withdraw(devFee); //il dev si tiene il suo compenso
+        RunContract(userAddress).withdraw(address(this).balance); //il vez prende il resto
+        emit runResult(userAddress, fResult); // e vissero tutti felici e contenti
     }
 }
