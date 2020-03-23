@@ -1,52 +1,41 @@
 pragma solidity 0.5.16;
 
-contract RunContract {
+import "contractsInterface.sol";
 
-    // address payable ownerAddress;
-    // uint basePrice;
-    mapping (string => address payable) private devFun;
-    mapping (string => uint) private funPrices;
+contract RunContract is ContractsInterface {
 
-    event runRequest(address payable fUser, string fName, string fParameters, address payable fDeveloper);
-    //Se teniamo la funzione di somma, usiamo uint per mettergli i risultati
-    event runResult(address payable rReceiver, string fResult); //, uint remainingEthers);
+    address payable private fUser;
     
-    function addDevFun(string memory fName, address payable fDeveloper) public {
-        devFun[fName] = fDeveloper;
+    constructor() public {
+        fUser = msg.sender; // salvo il vez che vuole fare run
     }
     
-    function addFunPrice(string memory fName, uint fPrice) public {
-        funPrices[fName] = fPrice;
+    modifier onlyUser {
+        require(msg.sender == fUser);
+        _;
     }
+
+    event runRequest(address payable fUser, string fName, string fParameters);
+   
+    event runResult(address payable fUser, string fResult);
     
-    
-    function getString() public pure returns(string memory) {
-        return "Hello";
+    function deposit() payable public {
+        //qua è giusto non scrivere nulla perché si deve settare il value con ethers.js... il msg.value con cui si chiamerà questa funzione sarà anche la cifra depositata
     }
 
-    function sendRunEvent(string memory fName, string memory fParameters) public payable { 
-        //Richiesta minima di basePrice sul wallet per eseguire l'operazione
-        // require(ownerAddress.balance >= basePrice);
-        //Trasferisce al contratto gli eth di basePrice dal wallet
-        // ownerAddress.transfer(basePrice);
-        //A questo punto si può procedere con la richiesta del run
-        address payable dev = devFun[fName];
-        require(msg.value >= funPrices[fName], "Enough ethereum to proceed");
-        dev.transfer(funPrices[fName]);
-        emit runRequest(msg.sender, fName, fParameters, dev);
+    function withdraw(uint money) public payable {
+        require(address(this).balance >= money);
+        msg.sender.transfer(money);
     }
 
-    function sendRunResult(address payable rReceiver, string memory fResult, uint moneyLeft) public payable {
-        //Calcola il resto
-        // uint remainingEthers = basePrice - runCost;
-        //Riassegna il resto al wallet che ha inviato la richiesta
+    function emitRunEvent(string memory fName, string memory fParameters) public payable onlyUser { 
+        deposit();//il vez caccia li sordi sempre definendo il value con ethers
+        emit runRequest(msg.sender, fName, fParameters);
+    }
 
-        //TO DO
-        //Pezzo mancante...restituire i soldi da contract a wallet (dovrebbe essere una riga)
-        
-
-        //Manda l'evento alla cli con risultato e resto di cui fare il console log
-        rReceiver.transfer(moneyLeft);
-        emit runResult(rReceiver, fResult); //, remainingEthers);
+    function sendRunResult(string memory fResult, uint moneySpent) public payable {
+        withdraw(moneySpent); //il dev si tiene il suo compenso
+        RunContract(fUser).withdraw(address(this).balance); //il vez prende il resto
+        emit runResult(fUser, fResult); // e vissero tutti felici e contenti
     }
 }
