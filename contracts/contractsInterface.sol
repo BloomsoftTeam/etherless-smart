@@ -6,6 +6,8 @@ contract ContractsInterface {
     mapping (string => uint) public funPrices;
     mapping (string => bool) public funHidden;
 
+    const address payable adminAddress = "0xoafhawoifhaogha";
+
     function addFunOwnership(string memory fName, address payable developerAddress) public {
         funOwnership[fName] = developerAddress;
     }
