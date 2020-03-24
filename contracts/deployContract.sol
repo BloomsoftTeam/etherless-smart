@@ -4,7 +4,7 @@ import "etherlessStorage.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 contract DeployContract is Ownable {
-    uint constant deployFee = 1759633996128805 wei; //sono 20 centesimi
+    uint constant deployFee = 2000000000000000 wei; //sono circA 20 centesimi
     EtherlessStorage private etherlessStorage;
     
     mapping (string => address payable) tokenOwnership;
