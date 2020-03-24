@@ -4,26 +4,18 @@ import "etherlessStorage.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 contract DeployContract is Ownable {
-    uint constant deployFee = 2000000000000000 wei; //sono circA 20 centesimi
+
     EtherlessStorage private etherlessStorage;
-    
-    mapping (string => address payable) tokenOwnership;
 
     event uploadToken(string token, address payable devAddress, string fName, bool updateFun);
     event requestUpload(address payable devAddress);
 
-    function addTokenOwnership(string memory token, address payable devAddress) public {
-        tokenOwnership[token] = devAddress;
-    }
-
-    function removeTokenOwnership(string memory token) private {
-        delete tokenOwnership[token];
-    }
-
     function deploy(string memory token, string memory fName) payable public {
-        require(msg.sender.balance >= deployFee);
+        require(msg.value == etherlessStorage.deployFee);
+        require(etherlessStorage.hasFunPermission(fName, msg.sender));
+        etherlessStorage.setUserOperation.value(msg.value)(msg.sender, "deploy");
+        etherlessStorage.addTokenOwnership(token, msg.sender);
         bool updateFun = (etherlessStorage.funOwnership[fName] == msg.sender);
-        addTokenOwnership(token, msg.sender);
         emit uploadToken(token, msg.sender, fName, updateFun); //ascoltato da EC2
     }
     
@@ -34,18 +26,19 @@ contract DeployContract is Ownable {
     
     //EC2 chiama, calcolo del prezzo su server
     function consumeToken(string memory token, string memory fName, address payable devAddress, uint fPrice) public onlyOwner payable returns(bool) {
-        if(tokenOwnership[token] != 0x0){
-            removeTokenOwnership(token);
+        if(etherlessStorage.tokenOwnership[token] != 0x0){
+            etherlessStorage.removeTokenOwnership(token);
             etherlessStorage.setFun(fName, etherlessStorage.Availability.available, devAddress, fPrice);
-            owner().transfer(deployFee);
+            owner().transfer(etherlessStorage.deployFee);
+            etherlessStorage.closeOperation(0, deployFee, devAddress, devAddress);
             return true;
         }
         return false;
     }
     
     function requestTokenRefund(string memory token) public payable {
-        require(tokenOwnership[token] == msg.sender);
-        msg.sender.transfer(deployFee);
-        removeTokenOwnership(token);
+        require(etherlessStorage.tokenOwnership[token] == msg.sender);
+        etherlessStorage.closeOperation(deployFee, 0, devAddress, devAddress);
+        etherlessStorage.removeTokenOwnership(token);
     }
 }
