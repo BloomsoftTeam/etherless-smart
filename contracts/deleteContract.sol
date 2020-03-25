@@ -6,16 +6,19 @@ contract DeleteContract {
 
     EtherlessStorage private etherlessStorage;
 
-    event deleteRequest(address devAddress, string funName);
-    event deleteSuccess(bool removed);
+    event deleteRequest(string operationHash, string funcName);
+    event deleteSuccess(string operationHash);
 
-    function sendDeleteRequest(address devAddress, string memory funName) public {
-        require(etherlessStorage.hasFunPermission(funName, devAddress));
-        emit deleteRequest(devAddress, funName);
+    function sendDeleteRequest(address devAddress, string memory funcName) public {
+        require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFunPermission(funcName, devAddress));
+        string memory operationHash = sha256(abi.encodePacked(uint16(msg.sender), "delete", funcName));
+        etherlessStorage.setUserOperation(msg.sender, operationHash);
+        emit deleteRequest(operationHash, funcName);
     }
 
-    function sendDeleteSuccess(bool removed, string memory funName) public {
-        bool deleteResult = etherlessStorage.removeFunOwnership(funName, msg.sender);
-        emit deleteSuccess(deleteResult);
+    function sendDeleteSuccess(string memory operationHash, string memory funcName) public {
+        etherlessStorage.removefuncOwnership(funcName, msg.sender);
+        etherlessStorage.closeOperation(operationHash);
+        emit deleteSuccess(operationHash);
     }
 }

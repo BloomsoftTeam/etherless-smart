@@ -7,19 +7,32 @@ contract RunContract is Ownable {
 
     EtherlessStorage private etherlessStorage;
 
-    event runRequest(address payable userAddress, string fName, string fParameters);
-   
-    event runResult(address payable userAddress, string fResult);
+    event runRequest(string operayionHash, string funcName, string funcParameters);
+    event runResult(string operationHash, string funcResult);
 
-    function sendRunRequest(string memory fName, string memory fParameters) public payable {
-        require(etherlessStorage.funAvailability[fName] == etherlessStorage.Availability.available);
-        require(msg.value == etherlessStorage.funPrices[fName]);  
-        etherlessStorage.setUserOperation.value(msg.value)(msg.sender, fName);
-        emit runRequest(msg.sender, fName, fParameters);
+    function sendRunRequest(string memory funcName, string memory funcParameters) public payable {
+        require(etherlessStorage.getFuncAvailability(funcName) == etherlessStorage.Availability.available);
+        require(msg.value == etherlessStorage.getFuncPrice(funcName));
+        string memory operationHash = sha256(abi.encodePacked(uint16(msg.sender), "run", funcName));
+        etherlessStorage.setUserOperation.value(msg.value)(msg.sender, operationHash);
+        emit runRequest(operationHash, funcName, funcParameters);
     }
 
-    function sendRunResult(string memory fResult, uint devFee, uint executionPrice, address payable devAddress, address payable userAddress) public onlyOwner {
-        etherlessStorage.removeUserOperation(userAddress);
-        emit runResult(userAddress, fResult); // e vissero tutti felici e contenti
+    function sendRunResult(string memory funcResult, uint executionPrice, uint devFee, address payable devAddress, string memory operationHash) public onlyOwner {
+        etherlessStorage.payCommissions(devAddress, devFee);
+        etherlessStorage.payCommissions(msg.sender, executionPrice);
+        uint refund = etherlessStorage.getoperationCost(operationHash) - (devFee + executionPrice);
+        if (refund > 0) {
+          etherlessStorage.closeoperation(operationHash, refund);
+        } else {
+          etherlessStorage.closeoperation(operationHash);
+        }
+        emit runResult(operationHash, funcResult);
     }
+
+    function sendRunFailure(string memory funcName, string memory operationHash) public onlyOwner {
+      etherlessStorage.setFuncAvailability(funcName, etherlessStorage.Availability.unavailable);
+      etherlessStorage.closeOperation(operationHash, etherlessStorage.getOperationCost(operationHash));
+    }
+
 }
