@@ -16,15 +16,37 @@ contract EtherlessStorage is Ownable {
     mapping (string => address) private operationUsers;
     mapping (string => uint) private operationCosts;
 
-    function getDeployFee() public returns (uint) {
+    function compareString(string memory first, string memory second) public pure returns (bool) {
+      return (keccak256(abi.encodePacked(first)) == keccak256(abi.encodePacked(second)));
+    }
+
+    function getAvailabilityFromString(string memory availability) private pure returns (Availability) {
+      if (compareString(availability, "available")) {
+        return Availability.available;
+      } else if (compareString(availability, "unavailable")) {
+        return Availability.unavailable;
+      }
+      return Availability.unassigned;
+    }
+
+    function getStringFromAvailability(Availability availability) private pure returns (string memory) {
+      if (Availability.available == availability) {
+        return "available";
+      } else if (Availability.unavailable == availability) {
+        return "unavailable";
+      }
+      return "unassigned";
+    }
+
+    function getDeployFee() public pure returns (uint) {
       return deployFee;
     }
 
-    function hasFuncPermission(string memory funcName, address devAddress) public returns(bool){
+    function hasFuncPermission(string memory funcName, address devAddress) public view returns(bool){
         return funcOwnership[funcName] == devAddress || devAddress == owner() || funcOwnership[funcName] == address(0);
     }
 
-    function setfuncOwnership(string memory funcName, address payable devAddress) public returns(bool) {
+    function setFuncOwnership(string memory funcName, address devAddress) public returns(bool) {
         if(funcOwnership[funcName] == address(0)){
             funcOwnership[funcName] = devAddress;
             return true;
@@ -32,7 +54,7 @@ contract EtherlessStorage is Ownable {
         return hasFuncPermission(funcName, devAddress);
     }
 
-    function getFuncOwnership(string memory funcName) public returns (address) {
+    function getFuncOwnership(string memory funcName) public view returns (address) {
       return funcOwnership[funcName];
     }
     
@@ -40,25 +62,25 @@ contract EtherlessStorage is Ownable {
         funcPrices[funcName] = fPrice;
     }
 
-    function getFuncPrice(string memory funcName) public returns (uint) {
+    function getFuncPrice(string memory funcName) public view returns (uint) {
       return funcPrices[funcName];
     }
 
-    function setfuncAvailability(string memory funcName, Availability availability) public onlyOwner {
-        funcAvailability[funcName] = availability;
+    function setFuncAvailability(string memory funcName, string memory availability) public onlyOwner {
+        funcAvailability[funcName] = getAvailabilityFromString(availability);
     }
 
-    function getFuncAvailability(string memory funcName) public returns (Availability) {
-      return funcAvailability[funcName];
+    function getFuncAvailability(string memory funcName) public view returns (string memory) {
+      return getStringFromAvailability(funcAvailability[funcName]);
     }
 
-    function setFun(string memory funcName, Availability availability, address payable devAddress, uint fPrice) public onlyOwner {
-        setfuncOwnership(funcName, devAddress);
-        setfuncAvailability(funcName, Availability.available);
+    function setFun(string memory funcName, string memory availability, address devAddress, uint fPrice) public onlyOwner {
+        setFuncOwnership(funcName, devAddress);
+        setFuncAvailability(funcName, availability);
         setFuncPrice(funcName, fPrice);
     }
 
-    function removefuncOwnership(string memory funcName, address payable devAddress) public onlyOwner {
+    function removeFuncOwnership(string memory funcName, address devAddress) public onlyOwner {
         if(hasFuncPermission(funcName, devAddress)){
             delete funcOwnership[funcName];
             delete funcPrices[funcName];
@@ -71,13 +93,13 @@ contract EtherlessStorage is Ownable {
       return funcPrices[funcName];
     }
 
-    function checkFuncExistance(string memory funcName) public returns (bool) {
+    function checkFuncExistance(string memory funcName) public view returns (bool) {
       return funcOwnership[funcName] != address(0);
     }
 
     //Funzioni per la gestione dei token per il deploy
 
-    function addTokenOwnership(string memory token, address payable devAddress) public onlyOwner {
+    function addTokenOwnership(string memory token, address devAddress) public onlyOwner {
         tokenOwnership[token] = devAddress;
     }
 
@@ -85,11 +107,11 @@ contract EtherlessStorage is Ownable {
         delete tokenOwnership[token];
     }
 
-    function getTokenOwnership(string memory token) public returns (address) {
+    function getTokenOwnership(string memory token) public view returns (address) {
       return tokenOwnership[token];
     }
 
-    function setUserOperation(address payable userAddress, string memory operationHash) public onlyOwner payable {
+    function setUserOperation(address userAddress, string memory operationHash) public onlyOwner payable {
         operationUsers[operationHash] = userAddress;
         operationCosts[operationHash] = msg.value;
     }
@@ -119,15 +141,15 @@ contract EtherlessStorage is Ownable {
       removeUserOperation(operationHash);
     }
 
-    function payCommissions(address payable receiver, uint amount) public onlyOwner {
+    function payCommissions(address receiver, uint amount) public onlyOwner {
       (address(uint160(receiver))).transfer(amount);
     }
 
-    function getOperationUser(string memory operationHash) public returns (address) {
+    function getOperationUser(string memory operationHash) public view returns (address) {
       return operationUsers[operationHash];
     }
 
-    function getOperationCost(string memory operationHash) public returns (uint) {
+    function getOperationCost(string memory operationHash) public view returns (uint) {
       return operationCosts[operationHash];
     }
 

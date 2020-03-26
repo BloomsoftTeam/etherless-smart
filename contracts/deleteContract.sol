@@ -11,14 +11,17 @@ contract DeleteContract {
 
     function sendDeleteRequest(address devAddress, string memory funcName) public {
         require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFuncPermission(funcName, devAddress));
-        bytes32 opBytes = sha256(abi.encodePacked(uint16(msg.sender), "delete", funcName));
-        string memory operationHash = opBytes;
+        bytes memory bytesArray = new bytes(32); 
+        for (uint256 i; i < 32; i++) { 
+          bytesArray[i] = sha256(abi.encodePacked(uint16(msg.sender), "delete", funcName))[i]; 
+        }
+        string memory operationHash = string(bytesArray);
         etherlessStorage.setUserOperation(msg.sender, operationHash);
         emit deleteRequest(operationHash, funcName);
     }
 
     function sendDeleteSuccess(string memory operationHash, string memory funcName) public {
-        etherlessStorage.removefuncOwnership(funcName, msg.sender);
+        etherlessStorage.removeFuncOwnership(funcName, msg.sender);
         etherlessStorage.closeOperation(operationHash);
         emit deleteSuccess(operationHash);
     }

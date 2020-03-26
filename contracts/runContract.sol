@@ -11,9 +11,13 @@ contract RunContract is Ownable {
     event runResult(string operationHash, string funcResult);
 
     function sendRunRequest(string memory funcName, string memory funcParameters) public payable {
-        require(etherlessStorage.getFuncAvailability(funcName) == etherlessStorage.Availability.available);
+        require(etherlessStorage.compareString(etherlessStorage.getFuncAvailability(funcName), "available"));
         require(msg.value == etherlessStorage.getFuncPrice(funcName));
-        string memory operationHash = sha256(abi.encodePacked(uint16(msg.sender), "run", funcName));
+        bytes memory bytesArray = new bytes(32); 
+        for (uint256 i; i < 32; i++) { 
+          bytesArray[i] = sha256(abi.encodePacked(uint16(msg.sender), "run", funcName))[i]; 
+        } 
+        string memory operationHash = string(bytesArray);
         etherlessStorage.setUserOperation.value(msg.value)(msg.sender, operationHash);
         emit runRequest(operationHash, funcName, funcParameters);
     }
@@ -21,17 +25,17 @@ contract RunContract is Ownable {
     function sendRunResult(string memory funcResult, uint executionPrice, uint devFee, address payable devAddress, string memory operationHash) public onlyOwner {
         etherlessStorage.payCommissions(devAddress, devFee);
         etherlessStorage.payCommissions(msg.sender, executionPrice);
-        uint refund = etherlessStorage.getoperationCost(operationHash) - (devFee + executionPrice);
+        uint refund = etherlessStorage.getOperationCost(operationHash) - (devFee + executionPrice);
         if (refund > 0) {
-          etherlessStorage.closeoperation(operationHash, refund);
+          etherlessStorage.closeOperation(operationHash, refund);
         } else {
-          etherlessStorage.closeoperation(operationHash);
+          etherlessStorage.closeOperation(operationHash);
         }
         emit runResult(operationHash, funcResult);
     }
 
     function sendRunFailure(string memory funcName, string memory operationHash) public onlyOwner {
-      etherlessStorage.setFuncAvailability(funcName, etherlessStorage.Availability.unavailable);
+      etherlessStorage.setFuncAvailability(funcName, "unavailable");
       etherlessStorage.closeOperation(operationHash, etherlessStorage.getOperationCost(operationHash));
     }
 
