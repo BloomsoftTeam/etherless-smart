@@ -1,6 +1,6 @@
 pragma solidity 0.5.16;
 
-import "etherlessStorage.sol";
+import "./etherlessStorage.sol";
 import "@openzeppelin/contracts/ownership/Ownable.sol";
 
 contract RunContract is Ownable {

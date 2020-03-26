@@ -1,6 +1,6 @@
 pragma solidity 0.5.16;
 
-import "etherlessStorage.sol";
+import "./etherlessStorage.sol";
 
 contract DeleteContract {
 
@@ -10,8 +10,9 @@ contract DeleteContract {
     event deleteSuccess(string operationHash);
 
     function sendDeleteRequest(address devAddress, string memory funcName) public {
-        require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFunPermission(funcName, devAddress));
-        string memory operationHash = sha256(abi.encodePacked(uint16(msg.sender), "delete", funcName));
+        require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFuncPermission(funcName, devAddress));
+        bytes32 opBytes = sha256(abi.encodePacked(uint16(msg.sender), "delete", funcName));
+        string memory operationHash = opBytes;
         etherlessStorage.setUserOperation(msg.sender, operationHash);
         emit deleteRequest(operationHash, funcName);
     }
