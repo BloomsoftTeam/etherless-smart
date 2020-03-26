@@ -2,12 +2,16 @@ pragma solidity 0.5.16;
 
 import "./etherlessStorage.sol";
 
-contract DeleteContract {
+contract DeleteContract is Initializable {
 
     EtherlessStorage private etherlessStorage;
 
     event deleteRequest(string operationHash, string funcName);
     event deleteSuccess(string operationHash);
+
+    function initialize() initializer public {
+    
+    }
 
     function sendDeleteRequest(address devAddress, string memory funcName) public {
         require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFuncPermission(funcName, devAddress));

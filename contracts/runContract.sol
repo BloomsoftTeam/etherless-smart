@@ -1,14 +1,17 @@
 pragma solidity 0.5.16;
 
 import "./etherlessStorage.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-contract RunContract is Ownable {
+contract RunContract is Initializable, Ownable {
 
     EtherlessStorage private etherlessStorage;
 
     event runRequest(string operayionHash, string funcName, string funcParameters);
     event runResult(string operationHash, string funcResult);
+
+    function initialize() initializer public {
+    
+    }
 
     function sendRunRequest(string memory funcName, string memory funcParameters) public payable {
         require(etherlessStorage.compareString(etherlessStorage.getFuncAvailability(funcName), "available"));

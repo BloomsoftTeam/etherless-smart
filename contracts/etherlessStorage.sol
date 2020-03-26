@@ -1,8 +1,9 @@
 pragma solidity 0.5.16;
 
-import "@openzeppelin/contracts/ownership/Ownable.sol";
+import "@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol";
+import "@openzeppelin/upgrades/contracts/Initializable.sol";
 
-contract EtherlessStorage is Ownable {
+contract EtherlessStorage is Initializable, Ownable {
 
     //Ownable ha automaticamente un campo dati owner che equivale a chi ha deployato il contratto (di default) e si può trasferire il "possesso" del contratto, fornisce il modifier onlyOwner
     uint constant deployFee = 2000000000000000 wei; //sono circA 20 centesimi
@@ -15,6 +16,10 @@ contract EtherlessStorage is Ownable {
     mapping (string => address) private tokenOwnership;
     mapping (string => address) private operationUsers;
     mapping (string => uint) private operationCosts;
+
+    function initialize() initializer public {
+    
+    }
 
     function compareString(string memory first, string memory second) public pure returns (bool) {
       return (keccak256(abi.encodePacked(first)) == keccak256(abi.encodePacked(second)));

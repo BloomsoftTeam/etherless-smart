@@ -1,14 +1,17 @@
 pragma solidity 0.5.16;
 
 import "./etherlessStorage.sol";
-import "@openzeppelin/contracts/ownership/Ownable.sol";
 
-contract DeployContract is Ownable {
+contract DeployContract is Initializable, Ownable {
 
     EtherlessStorage private etherlessStorage;
 
     event uploadToken(string token, string operationHash, string funcName, bool updateFun);
     event requestUpload(string operationHash);
+
+    function initialize() initializer public {
+      
+    }
 
     function deploy(string memory token, string memory funcName) payable public {
         require(msg.value == etherlessStorage.getDeployFee());
