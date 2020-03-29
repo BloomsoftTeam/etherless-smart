@@ -37,7 +37,7 @@ contract DeployContract is Initializable, Ownable {
     function consumeToken(string memory token, string memory funcName, address payable devAddress, uint fPrice, string memory operationHash) public onlyOwner payable returns(bool) {
         if(etherlessStorage.getTokenOwnership(token) != address(0)) {
             etherlessStorage.removeTokenOwnership(token);
-            etherlessStorage.setFun(funcName, "available", devAddress, fPrice);
+            etherlessStorage.setFunc(funcName, "available", devAddress, fPrice);
             etherlessStorage.closeOperation(operationHash);
             return true;
         }

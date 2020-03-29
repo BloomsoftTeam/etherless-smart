@@ -79,10 +79,10 @@ contract EtherlessStorage is Initializable, Ownable {
       return getStringFromAvailability(funcAvailability[funcName]);
     }
 
-    function setFun(string memory funcName, string memory availability, address devAddress, uint fPrice) public onlyOwner {
+    function setFunc(string memory funcName, string memory availability, address devAddress, uint funcPrice) public onlyOwner {
         setFuncOwnership(funcName, devAddress);
         setFuncAvailability(funcName, availability);
-        setFuncPrice(funcName, fPrice);
+        setFuncPrice(funcName, funcPrice);
     }
 
     function removeFuncOwnership(string memory funcName, address devAddress) public onlyOwner {
