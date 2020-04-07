@@ -13,13 +13,9 @@ contract DeleteContract is Initializable {
     
     }
 
-    function sendDeleteRequest(address devAddress, string memory funcName) public {
-        require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFuncPermission(funcName, devAddress));
-        bytes memory bytesArray = new bytes(32); 
-        for (uint256 i; i < 32; i++) { 
-          bytesArray[i] = sha256(abi.encodePacked(uint16(msg.sender), "delete", funcName))[i]; 
-        }
-        string memory operationHash = string(bytesArray);
+    function sendDeleteRequest(string memory funcName) public {
+        require(etherlessStorage.checkFuncExistance(funcName) && etherlessStorage.hasFuncPermission(funcName, msg.sender));
+        string memory operationHash = etherlessStorage.getOperationHash(uint16(msg.sender), "delete", funcName);
         etherlessStorage.setUserOperation(msg.sender, operationHash);
         emit deleteRequest(operationHash, funcName);
     }

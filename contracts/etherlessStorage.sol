@@ -8,7 +8,7 @@ contract EtherlessStorage is Initializable, Ownable {
     //Ownable ha automaticamente un campo dati owner che equivale a chi ha deployato il contratto (di default) e si può trasferire il "possesso" del contratto, fornisce il modifier onlyOwner
     uint constant deployFee = 2000000000000000 wei; //sono circA 20 centesimi
 
-    enum Availability{unassigned, available, unavailable}
+    enum Availability {unassigned, available, unavailable}
 
     mapping (string => address) private funcOwnership;
     mapping (string => uint) private funcPrices;
@@ -114,6 +114,14 @@ contract EtherlessStorage is Initializable, Ownable {
 
     function getTokenOwnership(string memory token) public view returns (address) {
       return tokenOwnership[token];
+    }
+
+    function getOperationHash(uint16 sender, string memory operationType, string memory funcName) public returns (string memory) {
+      bytes memory bytesArray = new bytes(32); 
+        for (uint256 i; i < 32; i++) { 
+          bytesArray[i] = sha256(abi.encodePacked(sender, operationType, funcName))[i]; 
+        } 
+        return string(bytesArray); 
     }
 
     function setUserOperation(address userAddress, string memory operationHash) public onlyOwner payable {

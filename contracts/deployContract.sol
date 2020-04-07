@@ -6,26 +6,27 @@ contract DeployContract is Initializable, Ownable {
 
     EtherlessStorage private etherlessStorage;
 
-    event uploadToken(string token, string operationHash, string funcName, bool updateFun);
+    event uploadToken(string token, string operationHash, string funcName, bool isUpdating);
     event requestUpload(string operationHash);
 
     function initialize() initializer public {
       
     }
 
-    function deploy(string memory token, string memory funcName) payable public {
+    function getDeployFee() pure returns (uint) {
+      return etherlessStorage.getDeployFee();
+    }
+
+    function deploy(string memory token, string memory funcName) payable public returns (string memory) {
         require(msg.value == etherlessStorage.getDeployFee());
         require(etherlessStorage.hasFuncPermission(funcName, msg.sender));
 
-        bytes memory bytesArray = new bytes(32); 
-        for (uint256 i; i < 32; i++) { 
-          bytesArray[i] = sha256(abi.encodePacked(uint16(msg.sender), "deploy", funcName))[i]; 
-        } 
-        string memory operationHash = string(bytesArray);
+        string memory operationHash = etherlessStorage.getOperationHash(uint16(msg.sender), "deploy", funcName);
         etherlessStorage.setUserOperation.value(msg.value)(msg.sender, operationHash);
         etherlessStorage.addTokenOwnership(token, msg.sender);
-        bool updateFun = (etherlessStorage.getFuncOwnership(funcName) == msg.sender);
-        emit uploadToken(token, operationHash, funcName, updateFun); //ascoltato da EC2
+        bool isUpdating = (etherlessStorage.getFuncOwnership(funcName) == msg.sender);
+        emit uploadToken(token, operationHash, funcName, isUpdating); //ascoltato da EC2
+        return operationHash;
     }
     
     //EC2 chiama
